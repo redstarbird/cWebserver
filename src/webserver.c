@@ -1,4 +1,4 @@
-#include "./webserver.h"
+#include "./webserver_internal.h"
 
 // Function to return a new HTTPResponse struct with all of the fields set to default empty values and the date field set to the current timestamp
 struct HTTPResponse createNewHTTPResponseStruct()
