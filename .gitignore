@@ -1,0 +1,11 @@
+# Build directory
+build/
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.exe
+
+# IDE and editor files
+.vscode/
