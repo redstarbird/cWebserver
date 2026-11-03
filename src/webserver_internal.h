@@ -62,6 +62,34 @@ const char *HTTP_Status_Codes[600] = {
     [404] = "Not Found",
     [500] = "Internal Server Error"};
 
+struct cWebServer_Server
+{
+    // Socket file descriptors
+    int HTTP_Socket;
+    int HTTPS_Socket;
+
+    // Port numbers
+    uint16_t HTTPPort;
+    uint16_t HTTPSPort;
+
+    // Root path from which to serve static paths from
+    char rootPath[PATH_MAX];
+    size_t rootPath;
+
+    // SSL context
+    SSL *SSL_ctx;
+
+    // Threads
+    pthread_t HTTP_Thread;
+    pthread_t HTTPS_Thread;
+
+    // The maximum nujmber of requests that can be queued per socket
+    uint32_t maxQueued;
+
+    // Stores whether the server is running
+    bool running;
+};
+
 // Struct for storing the content and metadata for a HTTP response
 struct HTTPResponse
 {
