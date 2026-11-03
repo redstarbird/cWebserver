@@ -62,7 +62,7 @@ const char *HTTP_Status_Codes[600] = {
     [404] = "Not Found",
     [500] = "Internal Server Error"};
 
-struct cWebServer_Server
+struct CWebServer_Server
 {
     // Socket file descriptors
     int HTTP_Socket;
