@@ -74,7 +74,7 @@ struct CWebServer_Server
 
     // Root path from which to serve static paths from
     char rootPath[PATH_MAX];
-    size_t rootPath;
+    size_t rootPathLen;
 
     // SSL context
     SSL *SSL_ctx;
