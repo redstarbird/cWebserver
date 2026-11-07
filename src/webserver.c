@@ -73,7 +73,7 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     server->rootPath[0] = '\0';
     server->rootPathLen = 0;
 
-    server->SSL_ctx = NULL;
+    server->SSL_ctx = SSL_CTX_new(TLS_server_method());
 
     server->maxQueued = maxQueued;
 
