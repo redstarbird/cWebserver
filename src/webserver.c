@@ -674,8 +674,58 @@ struct HTTPRequest createHTTPRequestStructFromBuffer(char *buffer, SSL *sslSessi
     return request;
 }
 
+void Run_HTTPS_Server(struct CWebServer_Server *server)
+{
+    printf("Started HTTPS server");
+
+    while (server->running)
+    {
+        // Accept a client connection and store its file descriptor
+        int client_fd = accept(server->HTTPS_Socket, NULL, NULL);
+
+        // Verify that the client connection was valid, skip this loop iteration if not
+        if (client_fd == -1)
+        {
+            printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+            continue;
+        }
+
+        // Setup SSL for the current client request
+
+        // Create SSL session from context
+        SSL *ssl_session = SSL_new(server->SSL_ctx);
+
+        // Bind the current client connection to the SSL session
+        SSL_set_fd(ssl_session, client_fd);
+
+        // Attempt to accept the SSL connection
+        SSL_accept(ssl_session);
+
+        // Create 4KB buffer for storing HTTPS requests
+        char bytesBuffer[4096] = {0};
+        // Read request up to 4096 bytes (leaving room for null terminator)
+        SSL_read(ssl_session, bytesBuffer, 4095);
+
+        // Create the response struct
+        struct HTTPResponse response = createNewHTTPResponseStruct();
+
+        response.statusCode = 200;
+        response.statusMessage = getHTTPStatusMessage(200);
+
+        int responseSize = 0;
+
+        char *responseBuffer = createResponseStringFromStruct(response, &responseSize);
+
+        // Send the HTTP response to the client
+        SSL_write(ssl_session, responseBuffer, responseSize);
+
+        // Stop the connection
+        stopConnection(ssl_session, client_fd);
+    }
+}
+
 // Main function for running the HTTPS webserver
-void *Run_HTTPS_Server()
+void *Run_HTTPS_Server_Old()
 {
     // Create the listener socket for the HTTPS server
     int socketfd = createListenerSocket(HTTPSPORT, MAXQUEUED);
@@ -822,6 +872,14 @@ void *Run_HTTPS_Server()
         // Stop the connection
         stopConnection(ssl_session, client_fd);
     }
+}
+
+void CWebServer_StartServer(CWebServer_Server *server)
+{
+    server->running = true;
+    pthread_create(&server->HTTPS_Thread, NULL, Run_HTTPS_Server, server);
+
+    pthread_join(server->HTTPS_Thread, NULL);
 }
 
 // For redirecting HTTP to HTTPS
