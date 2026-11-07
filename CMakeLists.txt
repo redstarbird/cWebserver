@@ -39,6 +39,16 @@ if(PROJECT_IS_TOP_LEVEL)
         # Link the webserver library to the test executable
         target_link_libraries(${TEST_NAME} PRIVATE webserver)
 
+        if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+            target_compile_options(${TEST_NAME} PRIVATE
+            -g 
+            -fsanitize=address,undefined
+            -fno-omit-frame-pointer
+            -fno-sanitize-recover=undefined
+            )
+            target_link_options(${TEST_NAME} PRIVATE -fsanitize=address,undefined)
+        endif()
+
         add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 
     endforeach()
