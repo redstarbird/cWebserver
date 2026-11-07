@@ -8,5 +8,6 @@ typedef struct HTTPRequest CWebServer_Request;
 typedef struct HTTPResponse CWebServer_Response;
 
 CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued);
+void CWebServer_DestroyServer(CWebServer_Server *server);
 
 #endif

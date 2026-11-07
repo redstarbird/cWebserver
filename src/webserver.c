@@ -28,6 +28,11 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     server->running = false;
 }
 
+void CWebServer_DestroyServer(CWebServer_Server *server)
+{
+    free(server);
+}
+
 // Function to return a new HTTPResponse struct with all of the fields set to default empty values and the date field set to the current timestamp
 struct HTTPResponse createNewHTTPResponseStruct()
 {
