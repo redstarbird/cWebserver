@@ -34,6 +34,9 @@
 // For PATH_MAX definition
 #include <linux/limits.h>
 
+// Public library include
+#include "../include/cWebServer.h"
+
 // Include the internal header files for the webserver
 #include "./internal_codes.h"
 #include "./util/file_util.h"
@@ -55,12 +58,7 @@ char CWD[PATH_MAX];
 int CWD_len;
 
 // Array storing HTTP status codes and their corresponding messages
-const char *HTTP_Status_Codes[600] = {
-    [200] = "OK",
-    [301] = "Moved Permanently",
-    [400] = "Bad Request",
-    [404] = "Not Found",
-    [500] = "Internal Server Error"};
+extern const char *HTTP_Status_Codes[600];
 
 struct CWebServer_Server
 {

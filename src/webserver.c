@@ -1,5 +1,33 @@
 #include "./webserver_internal.h"
 
+const char *HTTP_Status_Codes[600] = {
+    [200] = "OK",
+    [301] = "Moved Permanently",
+    [400] = "Bad Request",
+    [404] = "Not Found",
+    [500] = "Internal Server Error"};
+
+CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued)
+{
+    struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
+
+    // -1 to specify a socket is not yet set
+    server->HTTP_Socket = -1;
+    server->HTTPS_Socket = -1;
+
+    server->HTTPPort = HTTP_Port;
+    server->HTTPSPort = HTTPS_Port;
+
+    server->rootPath[0] = '\0';
+    server->rootPathLen = 0;
+
+    server->SSL_ctx = NULL;
+
+    server->maxQueued = maxQueued;
+
+    server->running = false;
+}
+
 // Function to return a new HTTPResponse struct with all of the fields set to default empty values and the date field set to the current timestamp
 struct HTTPResponse createNewHTTPResponseStruct()
 {
@@ -828,7 +856,7 @@ void *Run_HTTP_Server()
 }
 
 // Initalises and starts both the HTTP and HTTPS webserver
-int main(void)
+int mainOld(void)
 {
 
     // Set the current working directory global variable
