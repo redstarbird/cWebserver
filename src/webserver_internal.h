@@ -91,7 +91,7 @@ struct HTTPResponse
     time_t date;
     // Stores a redirect location header
     char *location;
-} HTTPResponse;
+};
 
 // Enum for the different HTTP request methods
 enum HTTPRequestMethod
@@ -100,7 +100,7 @@ enum HTTPRequestMethod
     HEAD,
     POST,
     DELETE
-} HTTPRequestMethod;
+};
 
 // Struct for storing data about a HTTP request
 struct HTTPRequest
@@ -119,6 +119,6 @@ struct HTTPRequest
 
     // SSL session for the request
     SSL *sslSession;
-} HTTPRequest;
+};
 
 #endif
