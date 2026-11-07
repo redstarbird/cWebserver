@@ -62,7 +62,7 @@ struct CWebServer_Server
     size_t rootPathLen;
 
     // SSL context
-    SSL *SSL_ctx;
+    SSL_CTX *SSL_ctx;
 
     // Threads
     pthread_t HTTP_Thread;
