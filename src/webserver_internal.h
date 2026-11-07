@@ -1,3 +1,5 @@
+#ifndef WEBSERVER_INTERNAL_H
+#define WEBSERVER_INTERNAL_H
 // Standard io
 #include <stdio.h>
 // Standard libary
@@ -133,3 +135,5 @@ struct HTTPRequest
     // SSL session for the request
     SSL *sslSession;
 } HTTPRequest;
+
+#endif
