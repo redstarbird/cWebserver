@@ -14,3 +14,28 @@ target_sources(webserver
 )
 
 target_include_directories(webserver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# -----------------------------
+# Testing setup
+# -----------------------------
+if(PROJECT_IS_TOP_LEVEL)
+    include(CTest)
+    enable_testing()
+
+    file(GLOB TEST_SOURCES "tests/test_*.c")
+
+    foreach(TEST_FILE ${TEST_SOURCES})
+
+        # Get test name from file name (without extension)
+        get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+
+        add_executable(${TEST_NAME} ${TEST_FILE} test/testing.c)
+
+        # Link the ArrowCSS library to the test executable
+        target_link_libraries(${TEST_NAME} PRIVATE ArrowCSS)
+
+        add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+    endforeach()
+
+endif()
