@@ -8,15 +8,15 @@ on:
 
 jobs:
     test-platforms:
-        name: ${{ matrix.name }}
-        runs-on: ${{ matrix.os }}
+        name: ${{ matrix.platform.name }}
+        runs-on: ${{ matrix.platform.os }}
 
         # Create a matrix of different OS and CMake configurations to test various scenarios
         strategy:
             fail-fast: false # Allows all matrix jobs to complete even if one job fails
             matrix:
                 build_type: [Debug, Release]
-                include:
+                platform:
                     - name: "Linux GCC (64-bit)"
                       os: ubuntu-latest
                       compiler: gcc
@@ -46,8 +46,8 @@ jobs:
             # Configure CMake using the specific arguments from the matrix
             - name: Configure CMake
               env:
-                  CC: ${{ matrix.compiler }}
-              run: cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_args }}
+                  CC: ${{ matrix.platform.compiler }}
+              run: cmake -B build -S . -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.platform.cmake_args }}
 
             - name: Build
               run: cmake --build build --config ${{matrix.build_type}}
