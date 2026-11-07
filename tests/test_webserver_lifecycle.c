@@ -11,6 +11,8 @@ void testCreateWebserver()
     ASSERT_EQUALS(server->HTTPSPort, 8002, "The server's HTTPS port was not set correctly.");
 
     ASSERT_EQUALS(server->maxQueued, 1024, "The server's maximum queued value was not set correctly.");
+
+    CWebServer_DestroyServer(server);
 }
 
 int main(void)
