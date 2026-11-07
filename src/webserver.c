@@ -60,7 +60,23 @@ const char *HTTP_Status_Codes[600] = {
     [404] = "Not Found",
     [500] = "Internal Server Error"};
 
-CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued)
+// Sets up the certificate and private key for a given SSL session
+void setupCertificate(SSL_CTX *ssl, const char *certPath, const char *keyPath)
+{
+    // Setup certificate
+    if (certPath != NULL)
+    {
+        SSL_CTX_use_certificate_chain_file(ssl, certPath);
+    }
+
+    // Setup private key
+    if (keyPath != NULL)
+    {
+        SSL_CTX_use_PrivateKey_file(ssl, keyPath, SSL_FILETYPE_PEM);
+    }
+}
+
+CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath)
 {
     struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
 
@@ -75,6 +91,8 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
 
     server->SSL_ctx = SSL_CTX_new(TLS_server_method());
 
+    setupCertificate(server->SSL_ctx, certPath, keyPath);
+
     server->maxQueued = maxQueued;
 
     server->running = false;
@@ -84,7 +102,14 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
 
 void CWebServer_DestroyServer(CWebServer_Server *server)
 {
-    free(server);
+    if (server->SSL_ctx)
+    {
+        SSL_CTX_free(server->SSL_ctx);
+    }
+    if (server)
+    {
+        free(server);
+    }
 }
 
 // Function to return a new HTTPResponse struct with all of the fields set to default empty values and the date field set to the current timestamp
@@ -215,15 +240,6 @@ char *createResponseStringFromStruct(struct HTTPResponse response, int *response
 
     // Return the reponse string
     return responseString;
-}
-
-// Sets up the certificate and private key for a given SSL session
-void setupCertificate(SSL *ssl)
-{
-    // Setup certificate
-    SSL_use_certificate_chain_file(ssl, "cert.pem");
-    // Setup private key
-    SSL_use_PrivateKey_file(ssl, "key.pem", SSL_FILETYPE_PEM);
 }
 
 // Converts a given relative file path from a request into an absolute file path
@@ -688,7 +704,7 @@ void *Run_HTTPS_Server()
         // Bind the current client connection to the SSL session
         SSL_set_fd(ssl_session, client_fd);
         // Setup the SSL certificates and private keys
-        setupCertificate(ssl_session);
+        setupCertificate(ssl_session, "cert.pem", "key.pem");
         // Attempt to accept the SSL connection
         SSL_accept(ssl_session);
 
