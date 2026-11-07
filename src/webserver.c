@@ -1,5 +1,43 @@
 #include "./webserver_internal.h"
 
+// Function to create a new listener socket on a given port
+int createListenerSocket(int port, uint32_t maxQueued)
+{
+
+    // Setup server address structure
+    struct sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+
+    // Create the socket file descriptor and check for any errors
+    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketfd == -1)
+    {
+        printf("An error occurred when attempting to create socket, errno: %d\n", errno);
+        exit(1);
+    }
+
+    // Bind the socket to the server address and check for any errors
+    if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
+    {
+        printf("An error occurred when attempting to bind socket to server address, errno: %d\n", errno);
+        // Close the socket on error
+        close(socketfd);
+        exit(1);
+    }
+
+    // Prepare the socket to listen and accept connections
+    if (listen(socketfd, maxQueued) == -1)
+    {
+        printf("An error occurred when attempting to call listen on socket, errno: %d\n", errno);
+        // Close the socket on error
+        close(socketfd);
+        exit(1);
+    }
+    return socketfd;
+}
+
 // Global definitions for the webserver
 // Port numbers for the HTTP and HTTP servers
 #define HTTPPORT 80
@@ -26,9 +64,8 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
 {
     struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
 
-    // -1 to specify a socket is not yet set
-    server->HTTP_Socket = -1;
-    server->HTTPS_Socket = -1;
+    server->HTTP_Socket = createListenerSocket(HTTP_Port, maxQueued);
+    server->HTTPS_Socket = createListenerSocket(HTTPS_Port, maxQueued);
 
     server->HTTPPort = HTTP_Port;
     server->HTTPSPort = HTTPS_Port;
@@ -296,44 +333,6 @@ char *getAbsolutePathFromRelative(char *relativePath, int *problem)
 
     // Return the final path
     return path;
-}
-
-// Function to create a new listener socket on a given port
-int createListenerSocket(int port)
-{
-
-    // Setup server address structure
-    struct sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(port);
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
-
-    // Create the socket file descriptor and check for any errors
-    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketfd == -1)
-    {
-        printf("An error occurred when attempting to create socket, errno: %d\n", errno);
-        exit(1);
-    }
-
-    // Bind the socket to the server address and check for any errors
-    if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
-    {
-        printf("An error occurred when attempting to bind socket to server address, errno: %d\n", errno);
-        // Close the socket on error
-        close(socketfd);
-        exit(1);
-    }
-
-    // Prepare the socket to listen and accept connections
-    if (listen(socketfd, MAXQUEUED) == -1)
-    {
-        printf("An error occurred when attempting to call listen on socket, errno: %d\n", errno);
-        // Close the socket on error
-        close(socketfd);
-        exit(1);
-    }
-    return socketfd;
 }
 
 // Function to get the value of the host name header from a given request buffer
@@ -663,7 +662,7 @@ struct HTTPRequest createHTTPRequestStructFromBuffer(char *buffer, SSL *sslSessi
 void *Run_HTTPS_Server()
 {
     // Create the listener socket for the HTTPS server
-    int socketfd = createListenerSocket(HTTPSPORT);
+    int socketfd = createListenerSocket(HTTPSPORT, MAXQUEUED);
     printf("Started HTTPS server\n");
 
     // Run the webserver loop
@@ -813,7 +812,7 @@ void *Run_HTTPS_Server()
 void *Run_HTTP_Server()
 {
     // Create listener socket on the HTTP port
-    int socketfd = createListenerSocket(HTTPPORT);
+    int socketfd = createListenerSocket(HTTPPORT, MAXQUEUED);
     printf("Started HTTP server\n");
 
     // Declare constant buffer size
