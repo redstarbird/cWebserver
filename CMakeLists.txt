@@ -12,3 +12,5 @@ target_sources(webserver
     src/content_types.c
     src/util/file_util.c
 )
+
+target_include_directories(webserver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
