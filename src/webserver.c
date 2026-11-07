@@ -26,6 +26,8 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     server->maxQueued = maxQueued;
 
     server->running = false;
+
+    return server;
 }
 
 void CWebServer_DestroyServer(CWebServer_Server *server)
