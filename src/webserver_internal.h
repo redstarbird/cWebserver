@@ -44,21 +44,6 @@
 #include "./util/file_util.h"
 #include "./content_types.h"
 
-// Global definitions for the webserver
-// Port numbers for the HTTP and HTTP servers
-#define HTTPPORT 80
-#define HTTPSPORT 443
-
-// Max number of queued connections for the listener sockets
-#define MAXQUEUED 1000
-
-// Path for the static files for the webserver
-#define STATICPATH "/public"
-
-// Global variable for the current working directory and its length
-char CWD[PATH_MAX];
-int CWD_len;
-
 // Array storing HTTP status codes and their corresponding messages
 extern const char *HTTP_Status_Codes[600];
 
