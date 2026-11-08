@@ -49,8 +49,8 @@ struct CWebServer_Server
     SSL_CTX *SSL_ctx;
 
     // Threads
-    pthread_t HTTP_Thread;
-    pthread_t HTTPS_Thread;
+    cws_thread_t HTTP_Thread;
+    cws_thread_t HTTPS_Thread;
 
     // The maximum nujmber of requests that can be queued per socket
     uint32_t maxQueued;
