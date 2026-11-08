@@ -674,54 +674,83 @@ struct HTTPRequest createHTTPRequestStructFromBuffer(char *buffer, SSL *sslSessi
     return request;
 }
 
-void Run_HTTPS_Server(struct CWebServer_Server *server)
+void *Run_HTTPS_Server(void *arg)
 {
     printf("Started HTTPS server");
 
+    struct CWebServer_Server *server = (struct CWebServer_Server *)arg;
+
+    struct pollfd pfd;
+    pfd.fd = server->HTTPS_Socket;
+    pfd.events = POLLIN;
+
     while (server->running)
     {
-        // Accept a client connection and store its file descriptor
-        int client_fd = accept(server->HTTPS_Socket, NULL, NULL);
 
-        // Verify that the client connection was valid, skip this loop iteration if not
-        if (client_fd == -1)
+        // Use poll to check every 500ms if the server should still be running
+        int activity = poll(&pfd, 1, 500);
+
+        if (activity < 0)
         {
-            printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+            printf("Poll error occurred, errno: %d\n", errno);
             continue;
         }
 
-        // Setup SSL for the current client request
+        // Timeout on poll, check if webserver should still be running
+        if (activity == 0)
+        {
+            continue;
+        }
 
-        // Create SSL session from context
-        SSL *ssl_session = SSL_new(server->SSL_ctx);
+        // Confirm poll event before attempting to accept
+        if (pfd.revents & POLLIN)
+        {
+            // Accept a client connection and store its file descriptor
+            int client_fd = accept(server->HTTPS_Socket, NULL, NULL);
 
-        // Bind the current client connection to the SSL session
-        SSL_set_fd(ssl_session, client_fd);
+            // Verify that the client connection was valid, skip this loop iteration if not
+            if (client_fd == -1)
+            {
+                printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+                continue;
+            }
 
-        // Attempt to accept the SSL connection
-        SSL_accept(ssl_session);
+            // Setup SSL for the current client request
 
-        // Create 4KB buffer for storing HTTPS requests
-        char bytesBuffer[4096] = {0};
-        // Read request up to 4096 bytes (leaving room for null terminator)
-        SSL_read(ssl_session, bytesBuffer, 4095);
+            // Create SSL session from context
+            SSL *ssl_session = SSL_new(server->SSL_ctx);
 
-        // Create the response struct
-        struct HTTPResponse response = createNewHTTPResponseStruct();
+            // Bind the current client connection to the SSL session
+            SSL_set_fd(ssl_session, client_fd);
 
-        response.statusCode = 200;
-        response.statusMessage = getHTTPStatusMessage(200);
+            // Attempt to accept the SSL connection
+            SSL_accept(ssl_session);
 
-        int responseSize = 0;
+            // Create 4KB buffer for storing HTTPS requests
+            char bytesBuffer[4096] = {0};
+            // Read request up to 4096 bytes (leaving room for null terminator)
+            SSL_read(ssl_session, bytesBuffer, 4095);
 
-        char *responseBuffer = createResponseStringFromStruct(response, &responseSize);
+            // Create the response struct
+            struct HTTPResponse response = createNewHTTPResponseStruct();
 
-        // Send the HTTP response to the client
-        SSL_write(ssl_session, responseBuffer, responseSize);
+            response.statusCode = 200;
+            response.statusMessage = getHTTPStatusMessage(200);
 
-        // Stop the connection
-        stopConnection(ssl_session, client_fd);
+            int responseSize = 0;
+
+            char *responseBuffer = createResponseStringFromStruct(response, &responseSize);
+
+            // Send the HTTP response to the client
+            SSL_write(ssl_session, responseBuffer, responseSize);
+
+            // Stop the connection
+            stopConnection(ssl_session, client_fd);
+        }
     }
+
+    // return null to make pthread_create happy
+    return NULL;
 }
 
 // Main function for running the HTTPS webserver
@@ -877,7 +906,13 @@ void *Run_HTTPS_Server_Old()
 void CWebServer_StartServer(CWebServer_Server *server)
 {
     server->running = true;
+
     pthread_create(&server->HTTPS_Thread, NULL, Run_HTTPS_Server, server);
+}
+
+void CWebServer_StopServer(CWebServer_Server *server)
+{
+    server->running = false;
 
     pthread_join(server->HTTPS_Thread, NULL);
 }

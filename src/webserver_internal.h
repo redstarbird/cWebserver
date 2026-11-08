@@ -44,6 +44,8 @@
 #include "./util/file_util.h"
 #include "./content_types.h"
 
+#include <poll.h>
+
 // Array storing HTTP status codes and their corresponding messages
 extern const char *HTTP_Status_Codes[600];
 
@@ -72,7 +74,7 @@ struct CWebServer_Server
     uint32_t maxQueued;
 
     // Stores whether the server is running
-    bool running;
+    volatile bool running;
 };
 
 // Struct for storing the content and metadata for a HTTP response
