@@ -28,6 +28,20 @@ if(PROJECT_IS_TOP_LEVEL)
     include(CTest)
     enable_testing()
 
+    find_program(OPENSSL_EXECUTABLE openssl)
+    if (OPENSSL_EXECUTABLE)
+        add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cert.pem ${CMAKE_CURRENT_BINARY_DIR}/key.pem
+            COMMAND ${OPENSSL_EXECUTABLE} req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj "/CN=localhost"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating self-signed SSL certificates for testing..."
+        )
+
+        add_custom_target(generate_test_certs ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/cert.pem)
+    else()
+        message(WARNING "OpenSSL executable not found. Tests will fail if cert.pem or key.pem are missing!")
+    endif()
+
     file(GLOB TEST_SOURCES "tests/test_*.c")
 
     foreach(TEST_FILE ${TEST_SOURCES})
