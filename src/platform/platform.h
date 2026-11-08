@@ -26,6 +26,8 @@ typedef SOCKET cws_socket_t;
 // Types for socket functions
 #include <sys/types.h>
 
+#include <errno.h>
+
 #define CWS_SOCKET_ERROR (-1)
 #define CWS_INVALID_SOCKET (-1)
 
