@@ -903,7 +903,7 @@ void *Run_HTTPS_Server_Old()
     }
 }
 
-void CWebServer_StartServer(CWebServer_Server *server)
+void CWebServer_StartServerAsync(CWebServer_Server *server)
 {
     server->running = true;
 
