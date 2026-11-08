@@ -33,9 +33,6 @@
 // For running the HTTP and HTTPS servers on separate threads
 #include <pthread.h>
 
-// For PATH_MAX definition
-#include <linux/limits.h>
-
 // Public library include
 #include "../include/cWebServer.h"
 
@@ -45,6 +42,8 @@
 #include "./content_types.h"
 
 #include <poll.h>
+
+#define PATH_MAX 4096
 
 // Array storing HTTP status codes and their corresponding messages
 extern const char *HTTP_Status_Codes[600];
