@@ -4,7 +4,7 @@
 
 void testStartStopWebserver()
 {
-    struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "../cert.pem", "../key.pem");
+    struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "cert.pem", "key.pem");
 
     CWebServer_StartServerAsync(server);
 
