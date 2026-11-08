@@ -23,7 +23,7 @@ int createListenerSocket(int port, uint32_t maxQueued)
     {
         printf("An error occurred when attempting to bind socket to server address, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
-        wcs_CloseSocket(socketfd);
+        cws_CloseSocket(socketfd);
         exit(1);
     }
 
@@ -32,7 +32,7 @@ int createListenerSocket(int port, uint32_t maxQueued)
     {
         printf("An error occurred when attempting to call listen on socket, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
-        wcs_CloseSocket(socketfd);
+        cws_CloseSocket(socketfd);
         exit(1);
     }
     return socketfd;
@@ -109,12 +109,12 @@ void CWebServer_DestroyServer(CWebServer_Server *server)
 
     if (server->HTTP_Socket >= 0)
     {
-        wcs_CloseSocket(server->HTTP_Socket);
+        cws_CloseSocket(server->HTTP_Socket);
     }
 
     if (server->HTTPS_Socket >= 0)
     {
-        wcs_CloseSocket(server->HTTPS_Socket);
+        cws_CloseSocket(server->HTTPS_Socket);
     }
 
     if (server->SSL_ctx)
