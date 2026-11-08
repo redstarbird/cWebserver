@@ -14,6 +14,9 @@
 
 typedef SOCKET cws_socket_t;
 
+#define CWS_SOCKET_ERROR SOCKET_ERROR
+#define CWS_INVALID_SOCKET INVALID_SOCKET
+
 #else // POSIX
 
 // Sockets
@@ -22,6 +25,9 @@ typedef SOCKET cws_socket_t;
 
 // Types for socket functions
 #include <sys/types.h>
+
+#define CWS_SOCKET_ERROR (-1)
+#define CWS_INVALID_SOCKET (-1)
 
 // For getting the current working directory and the function for closing sockets
 #include <unistd.h>
@@ -44,5 +50,6 @@ typedef int cws_socket_t;
 #endif
 
 int cws_CloseSocket(cws_socket_t s);
+int cws_GetSocketError(void);
 
 #endif
