@@ -7,31 +7,16 @@
 // Standard string functions
 #include <string.h>
 
-// Socket functions for networking
-#include <sys/socket.h>
-// Types for socket functions
-#include <sys/types.h>
-
-// Functions for internet addresses and host names
-#include <netdb.h>
-
-// Functions and structs for internet addresses and ports
-#include <netinet/in.h>
+#include "./platform/platform.h"
 
 // SSL functions for encrypted HTTPS connections
 #include <openssl/ssl.h>
-
-// For getting the current working directory and the function for closing sockets
-#include <unistd.h>
 
 // For error handling
 #include <errno.h>
 
 // Time functions
 #include <time.h>
-
-// For running the HTTP and HTTPS servers on separate threads
-#include <pthread.h>
 
 // Public library include
 #include "../include/cWebServer.h"
@@ -40,8 +25,6 @@
 #include "./internal_codes.h"
 #include "./util/file_util.h"
 #include "./content_types.h"
-
-#include <poll.h>
 
 #define PATH_MAX 4096
 
