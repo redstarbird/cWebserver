@@ -12,27 +12,27 @@ int createListenerSocket(int port, uint32_t maxQueued)
 
     // Create the socket file descriptor and check for any errors
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketfd == -1)
+    if (socketfd == CWS_INVALID_SOCKET)
     {
-        printf("An error occurred when attempting to create socket, errno: %d\n", errno);
+        printf("An error occurred when attempting to create socket, errno: %d\n", cws_GetSocketError());
         exit(1);
     }
 
     // Bind the socket to the server address and check for any errors
     if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
     {
-        printf("An error occurred when attempting to bind socket to server address, errno: %d\n", errno);
+        printf("An error occurred when attempting to bind socket to server address, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
-        close(socketfd);
+        wcs_CloseSocket(socketfd);
         exit(1);
     }
 
     // Prepare the socket to listen and accept connections
     if (listen(socketfd, maxQueued) == -1)
     {
-        printf("An error occurred when attempting to call listen on socket, errno: %d\n", errno);
+        printf("An error occurred when attempting to call listen on socket, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
-        close(socketfd);
+        wcs_CloseSocket(socketfd);
         exit(1);
     }
     return socketfd;
@@ -109,12 +109,12 @@ void CWebServer_DestroyServer(CWebServer_Server *server)
 
     if (server->HTTP_Socket >= 0)
     {
-        close(server->HTTP_Socket);
+        wcs_CloseSocket(server->HTTP_Socket);
     }
 
     if (server->HTTPS_Socket >= 0)
     {
-        close(server->HTTPS_Socket);
+        wcs_CloseSocket(server->HTTPS_Socket);
     }
 
     if (server->SSL_ctx)
@@ -531,7 +531,7 @@ void stopConnection(SSL *ssl, int clientfd)
     SSL_shutdown(ssl);
 
     // Close the client connection
-    close(clientfd);
+    cws_CloseSocket(clientfd);
 
     // Free memory from the SSL session
     SSL_free(ssl);
@@ -704,7 +704,7 @@ void *Run_HTTPS_Server(void *arg)
 
         if (activity < 0)
         {
-            printf("Poll error occurred, errno: %d\n", errno);
+            printf("Poll error occurred, errno: %d\n", cws_GetSocketError());
             continue;
         }
 
@@ -718,12 +718,12 @@ void *Run_HTTPS_Server(void *arg)
         if (pfd.revents & POLLIN)
         {
             // Accept a client connection and store its file descriptor
-            int client_fd = accept(server->HTTPS_Socket, NULL, NULL);
+            cws_socket_t client_fd = accept(server->HTTPS_Socket, NULL, NULL);
 
             // Verify that the client connection was valid, skip this loop iteration if not
-            if (client_fd == -1)
+            if (client_fd == CWS_INVALID_SOCKET)
             {
-                printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+                printf("An error occurred when attempting to accept a request, errno: %d\n", cws_GetSocketError());
                 continue;
             }
 
@@ -776,12 +776,12 @@ void *Run_HTTPS_Server_Old()
     while (true)
     {
         // Accept a client connection and store its file descriptor
-        int client_fd = accept(socketfd, NULL, NULL);
+        cws_socket_t client_fd = accept(socketfd, NULL, NULL);
 
         // Verify that the client connection was valid, skip this loop iteration if not
-        if (client_fd == -1)
+        if (client_fd == CWS_INVALID_SOCKET)
         {
-            printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+            printf("An error occurred when attempting to accept a request, errno: %d\n", cws_GetSocketError());
             continue;
         }
 
@@ -950,11 +950,11 @@ void *Run_HTTP_Server()
     while (true)
     {
         // Accept a client connection and store its file descriptor
-        int client_fd = accept(socketfd, NULL, NULL);
+        cws_socket_t client_fd = accept(socketfd, NULL, NULL);
         // Verify that the client connection was accepted successfully
-        if (client_fd == -1)
+        if (client_fd == CWS_INVALID_SOCKET)
         {
-            printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+            printf("An error occurred when attempting to accept a request, errno: %d\n", cws_GetSocketError());
         }
 
         // Create buffer
@@ -966,7 +966,7 @@ void *Run_HTTP_Server()
         // If no bytes were received, close the connection
         if (bytesReceived <= 0)
         {
-            close(client_fd);
+            cws_CloseSocket(client_fd);
             continue;
         }
 
@@ -976,7 +976,7 @@ void *Run_HTTP_Server()
         // Validate host name
         if (hostName == NULL)
         {
-            close(client_fd);
+            cws_CloseSocket(client_fd);
             continue;
         }
 
@@ -997,7 +997,7 @@ void *Run_HTTP_Server()
 
         // Send the HTTP redirect response to the client and close the connection
         send(client_fd, responseString, responseSize, 0);
-        close(client_fd);
+        cws_CloseSocket(client_fd);
 
         // Free allocated memory
         free(hostName);
