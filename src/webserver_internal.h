@@ -80,10 +80,10 @@ struct HTTPResponse
 // Enum for the different HTTP request methods
 enum HTTPRequestMethod
 {
-    GET,
-    HEAD,
-    POST,
-    DELETE
+    HTTP_GET,
+    HTTP_HEAD,
+    HTTP_POST,
+    HTTP_DELETE
 };
 
 // Struct for storing data about a HTTP request

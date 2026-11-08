@@ -552,26 +552,26 @@ enum HTTPRequestMethod getMethodFromRequest(char *buffer)
     // Check for GET request
     if (strncmp(buffer, "GET ", 4) == 0)
     {
-        return GET;
+        return HTTP_GET;
     }
     // Check for HEAD request
     else if (strncmp(buffer, "HEAD ", 5) == 0)
     {
-        return HEAD;
+        return HTTP_HEAD;
     }
     // Check for POST request
     else if (strncmp(buffer, "POST ", 5) == 0)
     {
-        return POST;
+        return HTTP_POST;
     }
     // Check for DELETE request
     else if (strncmp(buffer, "DELETE ", 7) == 0)
     {
-        return DELETE;
+        return HTTP_DELETE;
     }
 
     // Return GET by default if the method is not recognised
-    return GET;
+    return HTTP_GET;
 }
 
 // Function to extract the relative path from a given request buffer
@@ -850,7 +850,7 @@ void *Run_HTTPS_Server_Old()
         response.content = ReadDataFromFile(request.absolutePath, (size_t *)&response.contentLength, &problem);
 
         // If the request is a head
-        if (request.method == HEAD)
+        if (request.method == HTTP_HEAD)
         {
             response.content = NULL;
         }
