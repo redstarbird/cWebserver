@@ -52,8 +52,8 @@ jobs:
               run: |
                   brew install curl
 
-            - name: Install libcurl (macOS)
-              if: runner.os == 'macOS'
+            - name: Install libcurl (Windows)
+              if: runner.os == 'Windows'
               run: |
                   vcpkg install curl:x64-windows
 
