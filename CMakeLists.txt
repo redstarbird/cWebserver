@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
+find_package(CURL REQUIRED)
 
 add_library(webserver STATIC)
 
@@ -37,7 +38,7 @@ if(PROJECT_IS_TOP_LEVEL)
         add_executable(${TEST_NAME} ${TEST_FILE})
 
         # Link the webserver library to the test executable
-        target_link_libraries(${TEST_NAME} PRIVATE webserver)
+        target_link_libraries(${TEST_NAME} PRIVATE webserver CURL::libcurl)
 
         if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
             target_compile_options(${TEST_NAME} PRIVATE
