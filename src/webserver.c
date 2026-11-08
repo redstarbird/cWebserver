@@ -919,7 +919,7 @@ void CWebServer_StartServerAsync(CWebServer_Server *server)
 {
     server->running = true;
 
-    pthread_create(&server->HTTPS_Thread, NULL, Run_HTTPS_Server, server);
+    cws_thread_create(&server->HTTPS_Thread, Run_HTTPS_Server, server);
 }
 
 void CWebServer_StartServerWait(CWebServer_Server *server)
@@ -927,14 +927,14 @@ void CWebServer_StartServerWait(CWebServer_Server *server)
     CWebServer_StartServerAsync(server);
 
     // Blocks any other execution on this thread
-    pthread_join(server->HTTPS_Thread, NULL);
+    cws_thread_join(server->HTTPS_Thread);
 }
 
 void CWebServer_StopServer(CWebServer_Server *server)
 {
     server->running = false;
 
-    pthread_join(server->HTTPS_Thread, NULL);
+    cws_thread_join(server->HTTPS_Thread);
 }
 
 // For redirecting HTTP to HTTPS
@@ -1015,6 +1015,7 @@ int mainOld(void)
     // Setup content type data structures
     setupContentTypes();
 
+    /*
     // Create threads for http and https servers to run on seperately
     pthread_t HTTP_thread,
         HTTPS_thread;
@@ -1026,6 +1027,7 @@ int mainOld(void)
     // Wait for both the webserver threads to finish before stopping the server
     pthread_join(HTTP_thread, NULL);
     pthread_join(HTTPS_thread, NULL);
+    */
 
     return 0;
 }
