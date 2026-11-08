@@ -10,6 +10,7 @@ typedef struct HTTPResponse CWebServer_Response;
 CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath);
 void CWebServer_DestroyServer(CWebServer_Server *server);
 void CWebServer_StartServerAsync(CWebServer_Server *server);
+void CWebServer_StartServerWait(CWebServer_Server *server);
 void CWebServer_StopServer(CWebServer_Server *server);
 
 #endif

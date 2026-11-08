@@ -910,6 +910,14 @@ void CWebServer_StartServerAsync(CWebServer_Server *server)
     pthread_create(&server->HTTPS_Thread, NULL, Run_HTTPS_Server, server);
 }
 
+void CWebServer_StartServerWait(CWebServer_Server *server)
+{
+    CWebServer_StartServerAsync(server);
+
+    // Blocks any other execution on this thread
+    pthread_join(server->HTTPS_Thread, NULL);
+}
+
 void CWebServer_StopServer(CWebServer_Server *server)
 {
     server->running = false;
