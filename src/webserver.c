@@ -102,14 +102,26 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
 
 void CWebServer_DestroyServer(CWebServer_Server *server)
 {
+    if (!server)
+    {
+        return;
+    }
+
+    if (server->HTTP_Socket >= 0)
+    {
+        close(server->HTTP_Socket);
+    }
+
+    if (server->HTTPS_Socket >= 0)
+    {
+        close(server->HTTPS_Socket);
+    }
+
     if (server->SSL_ctx)
     {
         SSL_CTX_free(server->SSL_ctx);
     }
-    if (server)
-    {
-        free(server);
-    }
+    free(server);
 }
 
 // Function to return a new HTTPResponse struct with all of the fields set to default empty values and the date field set to the current timestamp
