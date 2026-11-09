@@ -34,8 +34,8 @@ extern const char *HTTP_Status_Codes[600];
 struct CWebServer_Server
 {
     // Socket file descriptors
-    int HTTP_Socket;
-    int HTTPS_Socket;
+    cws_socket_t HTTP_Socket;
+    cws_socket_t HTTPS_Socket;
 
     // Port numbers
     uint16_t HTTPPort;
