@@ -233,7 +233,7 @@ char *createResponseStringFromStruct(struct HTTPResponse response, int *response
     // Build the final response string using the status line, headers and content
 
     // Calculate the total length of the response string and null terminator at the end of the string
-    *responseSize = strlen(statusLine) + strlen(headers) + (response.content ? contentLength : 0);
+    *responseSize = (int)strlen(statusLine) + (int)strlen(headers) + (response.content ? (int)contentLength : 0);
 
     // Allocate the required memory for the response string
     char *responseString = (char *)malloc(sizeof(char) * ((*responseSize) + 1));
@@ -641,7 +641,7 @@ char *getRequestBodyFromBuffer(char *buffer)
     }
 
     // Calculate the length of the request body
-    int bodyLength = strlen(headerEnd) - 4;
+    size_t bodyLength = strlen(headerEnd) - 4;
 
     // Check if there is no body in the request
     if (bodyLength <= 0)
