@@ -51,7 +51,7 @@ cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
 
 // Global variable for the current working directory and its length
 char CWD[PATH_MAX];
-int CWD_len;
+size_t CWD_len;
 
 const char *HTTP_Status_Codes[600] = {
     [200] = "OK",
@@ -205,13 +205,13 @@ char *createResponseStringFromStruct(struct HTTPResponse response, int *response
     const char FixedHeaders[] = "Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nStrict-Transport-Security: max-age=63072000; includeSubDomains;";
 
     // If no content length is provided, calculate the content length from the content of the response
-    int contentLength = 0;
+    size_t contentLength = 0;
     if (response.contentLength == -1)
     {
         // If the response has content set the length to the length of the content otherwise, leave the content length at its default value of 0
         if (response.content)
         {
-            contentLength = strlen(response.content);
+            contentLength = (int)strlen(response.content);
         }
     }
     else
@@ -264,7 +264,7 @@ char *getAbsolutePathFromRelative(char *relativePath, int *problem)
     bool queryFound = false;
     int queryPos = 0;
     // Iterate backwards through the file path to determine if the request is a file or a directory and if it contains a query string
-    for (int i = strlen(relativePath) - 1; i >= 0; i--)
+    for (int i = (int)strlen(relativePath) - 1; i >= 0; i--)
     {
         // Find the last path seperator index
         if (relativePath[i] == '/')
@@ -339,7 +339,7 @@ char *getAbsolutePathFromRelative(char *relativePath, int *problem)
     }
 
     // Calculate the total path length summing the CWD length, relative path length and optionally the index.html length
-    int pathLength = CWD_len + strlen(tempPath) + 10 * addIndexHTML;
+    size_t pathLength = CWD_len + strlen(tempPath) + 10 * addIndexHTML;
 
     // Create the full path
 
@@ -441,7 +441,7 @@ void redirect(char *redirectURL, SSL *ssl)
 void trailingSlashRedirect(struct HTTPRequest request)
 {
     // Store the length of the relative path
-    int relPathLength = strlen(request.relativePath);
+    size_t relPathLength = strlen(request.relativePath);
 
     // Allocate the required memory for the new URL with a trailing slash
     char *fixedURL = malloc(sizeof(char) * (2 + relPathLength));
