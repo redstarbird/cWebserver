@@ -2,6 +2,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include <stdlib.h>
+#include <stdint.h>
+
 #ifdef _WIN32 // Windows
 
 #ifndef WIN32_LEAN_AND_MEAN
