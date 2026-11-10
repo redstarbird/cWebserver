@@ -22,6 +22,9 @@ typedef SOCKET cws_socket_t;
 
 typedef HANDLE cws_thread_t;
 
+#include <direct.h>
+#define getcwd _getcwd
+
 #else // POSIX
 
 // Sockets
