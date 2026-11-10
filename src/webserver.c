@@ -1,7 +1,7 @@
 #include "./webserver_internal.h"
 
 // Function to create a new listener socket on a given port
-int createListenerSocket(int port, uint32_t maxQueued)
+cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
 {
 
     // Setup server address structure
@@ -11,7 +11,7 @@ int createListenerSocket(int port, uint32_t maxQueued)
     serverAddress.sin_addr.s_addr = INADDR_ANY;
 
     // Create the socket file descriptor and check for any errors
-    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    cws_socket_t socketfd = socket(AF_INET, SOCK_STREAM, 0);
     if (socketfd == CWS_INVALID_SOCKET)
     {
         printf("An error occurred when attempting to create socket, errno: %d\n", cws_GetSocketError());
@@ -733,7 +733,7 @@ void *Run_HTTPS_Server(void *arg)
             SSL *ssl_session = SSL_new(server->SSL_ctx);
 
             // Bind the current client connection to the SSL session
-            SSL_set_fd(ssl_session, client_fd);
+            SSL_set_fd(ssl_session, (int)client_fd);
 
             // Attempt to accept the SSL connection
             SSL_accept(ssl_session);
@@ -757,7 +757,7 @@ void *Run_HTTPS_Server(void *arg)
             SSL_write(ssl_session, responseBuffer, responseSize);
 
             // Stop the connection
-            stopConnection(ssl_session, client_fd);
+            stopConnection(ssl_session, (int)client_fd);
         }
     }
 
@@ -769,7 +769,7 @@ void *Run_HTTPS_Server(void *arg)
 void *Run_HTTPS_Server_Old()
 {
     // Create the listener socket for the HTTPS server
-    int socketfd = createListenerSocket(HTTPSPORT, MAXQUEUED);
+    cws_socket_t socketfd = createListenerSocket(HTTPSPORT, MAXQUEUED);
     printf("Started HTTPS server\n");
 
     // Run the webserver loop
@@ -793,7 +793,7 @@ void *Run_HTTPS_Server_Old()
         SSL *ssl_session = SSL_new(ssl_ctx);
 
         // Bind the current client connection to the SSL session
-        SSL_set_fd(ssl_session, client_fd);
+        SSL_set_fd(ssl_session, (int)client_fd);
         // Setup the SSL certificates and private keys
         setupCertificate(ssl_session, "cert.pem", "key.pem");
         // Attempt to accept the SSL connection
@@ -808,7 +808,7 @@ void *Run_HTTPS_Server_Old()
         if (bytesBuffer[0] == '\0')
         {
             sendEmptyResponse(ssl_session);
-            stopConnection(ssl_session, client_fd);
+            stopConnection(ssl_session, (int)client_fd);
             continue;
         }
 
@@ -824,14 +824,14 @@ void *Run_HTTPS_Server_Old()
                 // If there is no trailing slash, redirect to the same URL with a trailing slash and close this connection
             case NO_TRAILING_SLASH:
                 trailingSlashRedirect(request);
-                stopConnection(ssl_session, client_fd);
+                stopConnection(ssl_session, (int)client_fd);
                 continue;
                 break;
 
                 // If some other problem occurs, send a 400 bad response code and close the connection
             default:
                 send400Response(request);
-                stopConnection(ssl_session, client_fd);
+                stopConnection(ssl_session, (int)client_fd);
                 continue;
                 break;
             }
@@ -911,7 +911,7 @@ void *Run_HTTPS_Server_Old()
         SSL_write(ssl_session, responseBuffer, responseSize);
 
         // Stop the connection
-        stopConnection(ssl_session, client_fd);
+        stopConnection(ssl_session, (int)client_fd);
     }
 }
 
@@ -941,7 +941,7 @@ void CWebServer_StopServer(CWebServer_Server *server)
 void *Run_HTTP_Server()
 {
     // Create listener socket on the HTTP port
-    int socketfd = createListenerSocket(HTTPPORT, MAXQUEUED);
+    cws_socket_t socketfd = createListenerSocket(HTTPPORT, MAXQUEUED);
     printf("Started HTTP server\n");
 
     // Declare constant buffer size
