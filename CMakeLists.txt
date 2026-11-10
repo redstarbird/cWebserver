@@ -19,6 +19,7 @@ target_sources(webserver
 
 if(WIN32)
     target_sources(webserver PRIVATE src/platform/platform_windows.c)
+    target_compile_definitions(webserver PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
 else()
     target_sources(webserver PRIVATE src/platform/platform_posix.c)
 endif()
