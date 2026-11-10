@@ -944,9 +944,6 @@ void *Run_HTTP_Server()
     cws_socket_t socketfd = createListenerSocket(HTTPPORT, MAXQUEUED);
     printf("Started HTTP server\n");
 
-    // Declare constant buffer size
-    const int BUFFER_SIZE = 4096;
-
     while (true)
     {
         // Accept a client connection and store its file descriptor
@@ -958,10 +955,10 @@ void *Run_HTTP_Server()
         }
 
         // Create buffer
-        char buffer[BUFFER_SIZE];
+        char buffer[4096];
 
         // Read data from request into buffer and store size of request in bytesReceived
-        int bytesReceived = recv(client_fd, buffer, BUFFER_SIZE, 0);
+        int bytesReceived = recv(client_fd, buffer, 4096, 0);
 
         // If no bytes were received, close the connection
         if (bytesReceived <= 0)
