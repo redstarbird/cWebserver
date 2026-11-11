@@ -700,7 +700,7 @@ void *Run_HTTPS_Server(void *arg)
     {
 
         // Use poll to check every 500ms if the server should still be running
-        int activity = poll(&pfd, 1, 500);
+        int activity = cws_poll(&pfd, 1, 500);
 
         if (activity < 0)
         {

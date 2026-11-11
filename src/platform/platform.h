@@ -67,6 +67,8 @@ typedef pthread_t cws_thread_t;
 int cws_CloseSocket(cws_socket_t s);
 int cws_GetSocketError(void);
 
+int cws_poll(struct pollfd *fds, unsigned int nfds, int timeout_ms);
+
 typedef void *(*cws_thread_func_t)(void *arg);
 int cws_thread_create(cws_thread_t *thread, cws_thread_func_t func, void *arg);
 int cws_thread_join(cws_thread_t thread);

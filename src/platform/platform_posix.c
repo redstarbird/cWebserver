@@ -19,3 +19,8 @@ int cws_thread_join(cws_thread_t thread)
 {
     return pthread_join(thread, NULL);
 }
+
+int cws_poll(struct pollfd *fds, unsigned int nfds, int timeout_ms)
+{
+    return poll(fds, nfds, timeout_ms);
+}

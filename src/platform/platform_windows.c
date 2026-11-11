@@ -54,3 +54,8 @@ int cws_thread_join(cws_thread_t thread)
     CloseHandle(thread);
     return 0;
 }
+
+int cws_poll(struct pollfd *fds, unsigned int nfds, int timeout_ms)
+{
+    return WSAPoll(fds, nfds, timeout_ms);
+}
