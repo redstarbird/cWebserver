@@ -28,6 +28,10 @@ typedef HANDLE cws_thread_t;
 #include <direct.h>
 #define getcwd _getcwd
 
+#ifndef F_OK
+#define F_OK 0
+#endif
+
 #else // POSIX
 
 // Sockets
