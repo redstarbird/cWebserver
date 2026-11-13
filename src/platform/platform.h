@@ -26,7 +26,9 @@ typedef SOCKET cws_socket_t;
 typedef HANDLE cws_thread_t;
 
 #include <direct.h>
+#include <io.h>
 #define getcwd _getcwd
+#define access _access
 
 #ifndef F_OK
 #define F_OK 0
