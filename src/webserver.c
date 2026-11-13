@@ -78,6 +78,8 @@ void setupCertificate(SSL_CTX *ssl, const char *certPath, const char *keyPath)
 
 CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath)
 {
+    cws_platform_init();
+
     struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
 
     server->HTTP_Socket = createListenerSocket(HTTP_Port, maxQueued);
@@ -96,8 +98,6 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     server->maxQueued = maxQueued;
 
     server->running = false;
-
-    cws_platform_init();
 
     return server;
 }
