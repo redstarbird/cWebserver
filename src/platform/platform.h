@@ -70,6 +70,11 @@ typedef pthread_t cws_thread_t;
 
 #endif
 
+// Platform specific initialisation
+int cws_platform_init(void);
+// Platform specific cleanup
+void cws_platform_cleanup(void);
+
 int cws_CloseSocket(cws_socket_t s);
 int cws_GetSocketError(void);
 

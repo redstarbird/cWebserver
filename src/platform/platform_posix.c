@@ -1,5 +1,9 @@
 #include "./platform.h"
 
+int cws_platform_init(void) { return 0; }
+
+void cws_platform_cleanup(void) {}
+
 int cws_CloseSocket(cws_socket_t s)
 {
     return close(s);

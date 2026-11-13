@@ -1,5 +1,16 @@
 #include "./platform.h"
 
+int cws_platform_init(void)
+{
+    WSADATA wsaData;
+    return WSAStartup(MAKEWORD(2, 2), &wsaData);
+}
+
+void cws_platform_cleanup(void)
+{
+    int WSACleanup();
+}
+
 int cws_CloseSocket(cws_socket_t s)
 {
     return closesocket(s);
