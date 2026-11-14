@@ -7,6 +7,19 @@ void testDestroyNullServer(void)
     CWebServer_DestroyServer(NULL);
 }
 
+void testPortReuseAfterDestroy(void)
+{
+    struct CWebServer_Server *server1 = CWebServer_CreateServer(8080, 8443, 1024, NULL, NULL);
+    ASSERT_TRUE(server1 != NULL, "Initial server creation failed.");
+
+    CWebServer_DestroyServer(server1);
+
+    struct CWebServer_Server *server2 = CWebServer_CreateServer(8080, 8443, 1024, NULL, NULL);
+    ASSERT_TRUE(server2 != NULL, "Second server creation failed with reused port.");
+
+    CWebServer_DestroyServer(server2);
+}
+
 void testStartStopWebserver()
 {
     struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "cert.pem", "key.pem");
