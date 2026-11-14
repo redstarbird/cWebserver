@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef _WIN32 // Windows
 
@@ -77,6 +78,7 @@ void cws_platform_cleanup(void);
 
 int cws_CloseSocket(cws_socket_t s);
 int cws_GetSocketError(void);
+int cws_socket_set_reuseaddr(cws_socket_t s, bool enable);
 
 int cws_poll(struct pollfd *fds, unsigned int nfds, int timeout_ms);
 

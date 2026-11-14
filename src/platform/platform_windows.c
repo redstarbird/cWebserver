@@ -21,6 +21,12 @@ int cws_GetSocketError(void)
     return WSAGetLastError();
 }
 
+int cws_socket_set_reuseaddr(cws_socket_t s, bool enable)
+{
+    int optVal = enable ? 1 : 0;
+    return setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)optVal, sizeof(optVal));
+}
+
 struct WindowsThreadArgs
 {
     cws_thread_func_t func;
