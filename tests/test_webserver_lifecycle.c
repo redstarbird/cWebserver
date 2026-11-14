@@ -2,6 +2,11 @@
 #include "../src/webserver_internal.h"
 #include "testing.h"
 
+void testDestroyNullServer(void)
+{
+    CWebServer_DestroyServer(NULL);
+}
+
 void testStartStopWebserver()
 {
     struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "cert.pem", "key.pem");
