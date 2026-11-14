@@ -18,6 +18,11 @@ cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
         exit(1);
     }
 
+    if (cws_socket_set_reuseaddr(socketfd, true) < 0)
+    {
+        printf("An error occured when attemptingto set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
+    }
+
     // Bind the socket to the server address and check for any errors
     if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
     {
