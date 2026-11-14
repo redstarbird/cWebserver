@@ -17,6 +17,36 @@ void testStartStopWebserver()
     CWebServer_DestroyServer(server);
 }
 
+void testCreateMultipleWebservers()
+{
+    const int serverNum = 5;
+
+    struct CWebServer_Server **servers = malloc(sizeof(CWebServer_Server *) * serverNum);
+
+    ASSERT_TRUE(servers != NULL, "Failed to allocate servers array.");
+
+    for (int i = 0; i < serverNum; i++)
+    {
+        servers[i] = CWebServer_CreateServer(8001 + i, 8443 + i, 1024 + i, NULL, NULL);
+    }
+
+    for (int i = 0; i < serverNum; i++)
+    {
+        ASSERT_TRUE(servers[i] != NULL, "Server instance was NULL.");
+        ASSERT_TRUE(servers[i]->HTTP_Socket != CWS_INVALID_SOCKET, "HTTP socket was invalid.");
+        ASSERT_TRUE(servers[i]->HTTPS_Socket != CWS_INVALID_SOCKET, "HTTP socket was invalid.");
+        ASSERT_TRUE(servers[i]->SSL_ctx != NULL, "SSL context was not initialised.");
+
+        ASSERT_EQUALS(8001 + i, servers[i]->HTTPPort, "The server's HTTP port was not set correctly.");
+        ASSERT_EQUALS(8443 + i, servers[i]->HTTPSPort, "The server's HTTPS port was not set correctly.");
+        ASSERT_EQUALS(1024 + i, servers[i]->maxQueued, "The server's maximum queued value was not set correctly.");
+
+        CWebServer_DestroyServer(servers[i]);
+    }
+
+    free(servers);
+}
+
 void testCreateWebserver()
 {
     struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL);
@@ -33,6 +63,7 @@ void testCreateWebserver()
 int main(void)
 {
     testCreateWebserver();
+    testCreateMultipleWebservers();
     testStartStopWebserver();
     return 0;
 }
