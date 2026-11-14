@@ -7,31 +7,16 @@
 // Standard string functions
 #include <string.h>
 
-// Socket functions for networking
-#include <sys/socket.h>
-// Types for socket functions
-#include <sys/types.h>
-
-// Functions for internet addresses and host names
-#include <netdb.h>
-
-// Functions and structs for internet addresses and ports
-#include <netinet/in.h>
+#include "./platform/platform.h"
 
 // SSL functions for encrypted HTTPS connections
 #include <openssl/ssl.h>
-
-// For getting the current working directory and the function for closing sockets
-#include <unistd.h>
 
 // For error handling
 #include <errno.h>
 
 // Time functions
 #include <time.h>
-
-// For running the HTTP and HTTPS servers on separate threads
-#include <pthread.h>
 
 // Public library include
 #include "../include/cWebServer.h"
@@ -41,8 +26,6 @@
 #include "./util/file_util.h"
 #include "./content_types.h"
 
-#include <poll.h>
-
 #define PATH_MAX 4096
 
 // Array storing HTTP status codes and their corresponding messages
@@ -51,8 +34,8 @@ extern const char *HTTP_Status_Codes[600];
 struct CWebServer_Server
 {
     // Socket file descriptors
-    int HTTP_Socket;
-    int HTTPS_Socket;
+    cws_socket_t HTTP_Socket;
+    cws_socket_t HTTPS_Socket;
 
     // Port numbers
     uint16_t HTTPPort;
@@ -66,8 +49,8 @@ struct CWebServer_Server
     SSL_CTX *SSL_ctx;
 
     // Threads
-    pthread_t HTTP_Thread;
-    pthread_t HTTPS_Thread;
+    cws_thread_t HTTP_Thread;
+    cws_thread_t HTTPS_Thread;
 
     // The maximum nujmber of requests that can be queued per socket
     uint32_t maxQueued;
@@ -97,10 +80,10 @@ struct HTTPResponse
 // Enum for the different HTTP request methods
 enum HTTPRequestMethod
 {
-    GET,
-    HEAD,
-    POST,
-    DELETE
+    HTTP_GET,
+    HTTP_HEAD,
+    HTTP_POST,
+    HTTP_DELETE
 };
 
 // Struct for storing data about a HTTP request

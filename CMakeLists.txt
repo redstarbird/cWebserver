@@ -17,6 +17,14 @@ target_sources(webserver
     src/util/file_util.c
 )
 
+if(WIN32)
+    target_sources(webserver PRIVATE src/platform/platform_windows.c)
+    target_link_libraries(webserver PUBLIC ws2_32 crypt32)
+    target_compile_definitions(webserver PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
+else()
+    target_sources(webserver PRIVATE src/platform/platform_posix.c)
+endif()
+
 target_include_directories(webserver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(webserver PUBLIC OpenSSL::SSL OpenSSL::Crypto Threads::Threads)

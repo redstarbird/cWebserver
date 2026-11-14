@@ -1,7 +1,7 @@
 #include "./webserver_internal.h"
 
 // Function to create a new listener socket on a given port
-int createListenerSocket(int port, uint32_t maxQueued)
+cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
 {
 
     // Setup server address structure
@@ -11,28 +11,33 @@ int createListenerSocket(int port, uint32_t maxQueued)
     serverAddress.sin_addr.s_addr = INADDR_ANY;
 
     // Create the socket file descriptor and check for any errors
-    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketfd == -1)
+    cws_socket_t socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketfd == CWS_INVALID_SOCKET)
     {
-        printf("An error occurred when attempting to create socket, errno: %d\n", errno);
+        printf("An error occurred when attempting to create socket, errno: %d\n", cws_GetSocketError());
         exit(1);
+    }
+
+    if (cws_socket_set_reuseaddr(socketfd, true) < 0)
+    {
+        printf("An error occured when attemptingto set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
     }
 
     // Bind the socket to the server address and check for any errors
     if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
     {
-        printf("An error occurred when attempting to bind socket to server address, errno: %d\n", errno);
+        printf("An error occurred when attempting to bind socket to server address, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
-        close(socketfd);
+        cws_CloseSocket(socketfd);
         exit(1);
     }
 
     // Prepare the socket to listen and accept connections
     if (listen(socketfd, maxQueued) == -1)
     {
-        printf("An error occurred when attempting to call listen on socket, errno: %d\n", errno);
+        printf("An error occurred when attempting to call listen on socket, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
-        close(socketfd);
+        cws_CloseSocket(socketfd);
         exit(1);
     }
     return socketfd;
@@ -51,7 +56,7 @@ int createListenerSocket(int port, uint32_t maxQueued)
 
 // Global variable for the current working directory and its length
 char CWD[PATH_MAX];
-int CWD_len;
+size_t CWD_len;
 
 const char *HTTP_Status_Codes[600] = {
     [200] = "OK",
@@ -78,6 +83,8 @@ void setupCertificate(SSL_CTX *ssl, const char *certPath, const char *keyPath)
 
 CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath)
 {
+    cws_platform_init();
+
     struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
 
     server->HTTP_Socket = createListenerSocket(HTTP_Port, maxQueued);
@@ -109,12 +116,12 @@ void CWebServer_DestroyServer(CWebServer_Server *server)
 
     if (server->HTTP_Socket >= 0)
     {
-        close(server->HTTP_Socket);
+        cws_CloseSocket(server->HTTP_Socket);
     }
 
     if (server->HTTPS_Socket >= 0)
     {
-        close(server->HTTPS_Socket);
+        cws_CloseSocket(server->HTTPS_Socket);
     }
 
     if (server->SSL_ctx)
@@ -122,6 +129,8 @@ void CWebServer_DestroyServer(CWebServer_Server *server)
         SSL_CTX_free(server->SSL_ctx);
     }
     free(server);
+
+    cws_platform_cleanup();
 }
 
 // Function to return a new HTTPResponse struct with all of the fields set to default empty values and the date field set to the current timestamp
@@ -205,13 +214,13 @@ char *createResponseStringFromStruct(struct HTTPResponse response, int *response
     const char FixedHeaders[] = "Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nStrict-Transport-Security: max-age=63072000; includeSubDomains;";
 
     // If no content length is provided, calculate the content length from the content of the response
-    int contentLength = 0;
+    size_t contentLength = 0;
     if (response.contentLength == -1)
     {
         // If the response has content set the length to the length of the content otherwise, leave the content length at its default value of 0
         if (response.content)
         {
-            contentLength = strlen(response.content);
+            contentLength = (int)strlen(response.content);
         }
     }
     else
@@ -233,7 +242,7 @@ char *createResponseStringFromStruct(struct HTTPResponse response, int *response
     // Build the final response string using the status line, headers and content
 
     // Calculate the total length of the response string and null terminator at the end of the string
-    *responseSize = strlen(statusLine) + strlen(headers) + (response.content ? contentLength : 0);
+    *responseSize = (int)strlen(statusLine) + (int)strlen(headers) + (response.content ? (int)contentLength : 0);
 
     // Allocate the required memory for the response string
     char *responseString = (char *)malloc(sizeof(char) * ((*responseSize) + 1));
@@ -264,7 +273,7 @@ char *getAbsolutePathFromRelative(char *relativePath, int *problem)
     bool queryFound = false;
     int queryPos = 0;
     // Iterate backwards through the file path to determine if the request is a file or a directory and if it contains a query string
-    for (int i = strlen(relativePath) - 1; i >= 0; i--)
+    for (int i = (int)strlen(relativePath) - 1; i >= 0; i--)
     {
         // Find the last path seperator index
         if (relativePath[i] == '/')
@@ -339,7 +348,7 @@ char *getAbsolutePathFromRelative(char *relativePath, int *problem)
     }
 
     // Calculate the total path length summing the CWD length, relative path length and optionally the index.html length
-    int pathLength = CWD_len + strlen(tempPath) + 10 * addIndexHTML;
+    size_t pathLength = CWD_len + strlen(tempPath) + 10 * addIndexHTML;
 
     // Create the full path
 
@@ -441,7 +450,7 @@ void redirect(char *redirectURL, SSL *ssl)
 void trailingSlashRedirect(struct HTTPRequest request)
 {
     // Store the length of the relative path
-    int relPathLength = strlen(request.relativePath);
+    size_t relPathLength = strlen(request.relativePath);
 
     // Allocate the required memory for the new URL with a trailing slash
     char *fixedURL = malloc(sizeof(char) * (2 + relPathLength));
@@ -531,7 +540,7 @@ void stopConnection(SSL *ssl, int clientfd)
     SSL_shutdown(ssl);
 
     // Close the client connection
-    close(clientfd);
+    cws_CloseSocket(clientfd);
 
     // Free memory from the SSL session
     SSL_free(ssl);
@@ -552,26 +561,26 @@ enum HTTPRequestMethod getMethodFromRequest(char *buffer)
     // Check for GET request
     if (strncmp(buffer, "GET ", 4) == 0)
     {
-        return GET;
+        return HTTP_GET;
     }
     // Check for HEAD request
     else if (strncmp(buffer, "HEAD ", 5) == 0)
     {
-        return HEAD;
+        return HTTP_HEAD;
     }
     // Check for POST request
     else if (strncmp(buffer, "POST ", 5) == 0)
     {
-        return POST;
+        return HTTP_POST;
     }
     // Check for DELETE request
     else if (strncmp(buffer, "DELETE ", 7) == 0)
     {
-        return DELETE;
+        return HTTP_DELETE;
     }
 
     // Return GET by default if the method is not recognised
-    return GET;
+    return HTTP_GET;
 }
 
 // Function to extract the relative path from a given request buffer
@@ -641,7 +650,7 @@ char *getRequestBodyFromBuffer(char *buffer)
     }
 
     // Calculate the length of the request body
-    int bodyLength = strlen(headerEnd) - 4;
+    size_t bodyLength = strlen(headerEnd) - 4;
 
     // Check if there is no body in the request
     if (bodyLength <= 0)
@@ -700,11 +709,11 @@ void *Run_HTTPS_Server(void *arg)
     {
 
         // Use poll to check every 500ms if the server should still be running
-        int activity = poll(&pfd, 1, 500);
+        int activity = cws_poll(&pfd, 1, 500);
 
         if (activity < 0)
         {
-            printf("Poll error occurred, errno: %d\n", errno);
+            printf("Poll error occurred, errno: %d\n", cws_GetSocketError());
             continue;
         }
 
@@ -718,12 +727,12 @@ void *Run_HTTPS_Server(void *arg)
         if (pfd.revents & POLLIN)
         {
             // Accept a client connection and store its file descriptor
-            int client_fd = accept(server->HTTPS_Socket, NULL, NULL);
+            cws_socket_t client_fd = accept(server->HTTPS_Socket, NULL, NULL);
 
             // Verify that the client connection was valid, skip this loop iteration if not
-            if (client_fd == -1)
+            if (client_fd == CWS_INVALID_SOCKET)
             {
-                printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+                printf("An error occurred when attempting to accept a request, errno: %d\n", cws_GetSocketError());
                 continue;
             }
 
@@ -733,7 +742,7 @@ void *Run_HTTPS_Server(void *arg)
             SSL *ssl_session = SSL_new(server->SSL_ctx);
 
             // Bind the current client connection to the SSL session
-            SSL_set_fd(ssl_session, client_fd);
+            SSL_set_fd(ssl_session, (int)client_fd);
 
             // Attempt to accept the SSL connection
             SSL_accept(ssl_session);
@@ -757,7 +766,7 @@ void *Run_HTTPS_Server(void *arg)
             SSL_write(ssl_session, responseBuffer, responseSize);
 
             // Stop the connection
-            stopConnection(ssl_session, client_fd);
+            stopConnection(ssl_session, (int)client_fd);
         }
     }
 
@@ -769,19 +778,19 @@ void *Run_HTTPS_Server(void *arg)
 void *Run_HTTPS_Server_Old()
 {
     // Create the listener socket for the HTTPS server
-    int socketfd = createListenerSocket(HTTPSPORT, MAXQUEUED);
+    cws_socket_t socketfd = createListenerSocket(HTTPSPORT, MAXQUEUED);
     printf("Started HTTPS server\n");
 
     // Run the webserver loop
     while (true)
     {
         // Accept a client connection and store its file descriptor
-        int client_fd = accept(socketfd, NULL, NULL);
+        cws_socket_t client_fd = accept(socketfd, NULL, NULL);
 
         // Verify that the client connection was valid, skip this loop iteration if not
-        if (client_fd == -1)
+        if (client_fd == CWS_INVALID_SOCKET)
         {
-            printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+            printf("An error occurred when attempting to accept a request, errno: %d\n", cws_GetSocketError());
             continue;
         }
 
@@ -793,7 +802,7 @@ void *Run_HTTPS_Server_Old()
         SSL *ssl_session = SSL_new(ssl_ctx);
 
         // Bind the current client connection to the SSL session
-        SSL_set_fd(ssl_session, client_fd);
+        SSL_set_fd(ssl_session, (int)client_fd);
         // Setup the SSL certificates and private keys
         setupCertificate(ssl_session, "cert.pem", "key.pem");
         // Attempt to accept the SSL connection
@@ -808,7 +817,7 @@ void *Run_HTTPS_Server_Old()
         if (bytesBuffer[0] == '\0')
         {
             sendEmptyResponse(ssl_session);
-            stopConnection(ssl_session, client_fd);
+            stopConnection(ssl_session, (int)client_fd);
             continue;
         }
 
@@ -824,14 +833,14 @@ void *Run_HTTPS_Server_Old()
                 // If there is no trailing slash, redirect to the same URL with a trailing slash and close this connection
             case NO_TRAILING_SLASH:
                 trailingSlashRedirect(request);
-                stopConnection(ssl_session, client_fd);
+                stopConnection(ssl_session, (int)client_fd);
                 continue;
                 break;
 
                 // If some other problem occurs, send a 400 bad response code and close the connection
             default:
                 send400Response(request);
-                stopConnection(ssl_session, client_fd);
+                stopConnection(ssl_session, (int)client_fd);
                 continue;
                 break;
             }
@@ -850,7 +859,7 @@ void *Run_HTTPS_Server_Old()
         response.content = ReadDataFromFile(request.absolutePath, (size_t *)&response.contentLength, &problem);
 
         // If the request is a head
-        if (request.method == HEAD)
+        if (request.method == HTTP_HEAD)
         {
             response.content = NULL;
         }
@@ -911,7 +920,7 @@ void *Run_HTTPS_Server_Old()
         SSL_write(ssl_session, responseBuffer, responseSize);
 
         // Stop the connection
-        stopConnection(ssl_session, client_fd);
+        stopConnection(ssl_session, (int)client_fd);
     }
 }
 
@@ -919,7 +928,7 @@ void CWebServer_StartServerAsync(CWebServer_Server *server)
 {
     server->running = true;
 
-    pthread_create(&server->HTTPS_Thread, NULL, Run_HTTPS_Server, server);
+    cws_thread_create(&server->HTTPS_Thread, Run_HTTPS_Server, server);
 }
 
 void CWebServer_StartServerWait(CWebServer_Server *server)
@@ -927,46 +936,43 @@ void CWebServer_StartServerWait(CWebServer_Server *server)
     CWebServer_StartServerAsync(server);
 
     // Blocks any other execution on this thread
-    pthread_join(server->HTTPS_Thread, NULL);
+    cws_thread_join(server->HTTPS_Thread);
 }
 
 void CWebServer_StopServer(CWebServer_Server *server)
 {
     server->running = false;
 
-    pthread_join(server->HTTPS_Thread, NULL);
+    cws_thread_join(server->HTTPS_Thread);
 }
 
 // For redirecting HTTP to HTTPS
 void *Run_HTTP_Server()
 {
     // Create listener socket on the HTTP port
-    int socketfd = createListenerSocket(HTTPPORT, MAXQUEUED);
+    cws_socket_t socketfd = createListenerSocket(HTTPPORT, MAXQUEUED);
     printf("Started HTTP server\n");
-
-    // Declare constant buffer size
-    const int BUFFER_SIZE = 4096;
 
     while (true)
     {
         // Accept a client connection and store its file descriptor
-        int client_fd = accept(socketfd, NULL, NULL);
+        cws_socket_t client_fd = accept(socketfd, NULL, NULL);
         // Verify that the client connection was accepted successfully
-        if (client_fd == -1)
+        if (client_fd == CWS_INVALID_SOCKET)
         {
-            printf("An error occurred when attempting to accept a request, errno: %d\n", errno);
+            printf("An error occurred when attempting to accept a request, errno: %d\n", cws_GetSocketError());
         }
 
         // Create buffer
-        char buffer[BUFFER_SIZE];
+        char buffer[4096];
 
         // Read data from request into buffer and store size of request in bytesReceived
-        int bytesReceived = recv(client_fd, buffer, BUFFER_SIZE, 0);
+        int bytesReceived = recv(client_fd, buffer, 4096, 0);
 
         // If no bytes were received, close the connection
         if (bytesReceived <= 0)
         {
-            close(client_fd);
+            cws_CloseSocket(client_fd);
             continue;
         }
 
@@ -976,7 +982,7 @@ void *Run_HTTP_Server()
         // Validate host name
         if (hostName == NULL)
         {
-            close(client_fd);
+            cws_CloseSocket(client_fd);
             continue;
         }
 
@@ -997,7 +1003,7 @@ void *Run_HTTP_Server()
 
         // Send the HTTP redirect response to the client and close the connection
         send(client_fd, responseString, responseSize, 0);
-        close(client_fd);
+        cws_CloseSocket(client_fd);
 
         // Free allocated memory
         free(hostName);
@@ -1015,6 +1021,7 @@ int mainOld(void)
     // Setup content type data structures
     setupContentTypes();
 
+    /*
     // Create threads for http and https servers to run on seperately
     pthread_t HTTP_thread,
         HTTPS_thread;
@@ -1026,6 +1033,7 @@ int mainOld(void)
     // Wait for both the webserver threads to finish before stopping the server
     pthread_join(HTTP_thread, NULL);
     pthread_join(HTTPS_thread, NULL);
+    */
 
     return 0;
 }
