@@ -20,6 +20,20 @@ void testPortReuseAfterDestroy(void)
     CWebServer_DestroyServer(server2);
 }
 
+void testWebserverMultipleRestarts()
+{
+    CWebServer_Server *server = CWebServer_CreateServer(8081, 8455, 1024, NULL, NULL);
+
+    for (int i = 0; i < 3; i++)
+    {
+        CWebServer_StartServerAsync(server);
+        ASSERT_TRUE(server->running, "Server was not running.");
+
+        CWebServer_StopServer(server);
+        ASSERT_EQUALS(false, server->running, "Server was running after being stopped.");
+    }
+}
+
 void testStartStopWebserver()
 {
     struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "cert.pem", "key.pem");
