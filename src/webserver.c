@@ -94,6 +94,12 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
         return NULL;
     }
 
+    // Set empty states
+    server->HTTP_Socket = CWS_INVALID_SOCKET;
+    server->HTTPS_Socket = CWS_INVALID_SOCKET;
+    server->SSL_ctx = NULL;
+    server->running = false;
+
     server->HTTP_Socket = createListenerSocket(HTTP_Port, maxQueued);
     if (server->HTTP_Socket == CWS_INVALID_SOCKET)
     {
@@ -127,8 +133,6 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     setupCertificate(server->SSL_ctx, certPath, keyPath);
 
     server->maxQueued = maxQueued;
-
-    server->running = false;
 
     return server;
 }
