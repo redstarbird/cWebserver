@@ -9,12 +9,12 @@ void testDestroyNullServer(void)
 
 void testPortReuseAfterDestroy(void)
 {
-    struct CWebServer_Server *server1 = CWebServer_CreateServer(8080, 8443, 1024, NULL, NULL);
+    struct CWebServer_Server *server1 = CWebServer_CreateServer(8080, 8443, 1024, NULL, NULL, NULL);
     ASSERT_TRUE(server1 != NULL, "Initial server creation failed.");
 
     CWebServer_DestroyServer(server1);
 
-    struct CWebServer_Server *server2 = CWebServer_CreateServer(8080, 8443, 1024, NULL, NULL);
+    struct CWebServer_Server *server2 = CWebServer_CreateServer(8080, 8443, 1024, NULL, NULL, NULL);
     ASSERT_TRUE(server2 != NULL, "Second server creation failed with reused port.");
 
     CWebServer_DestroyServer(server2);
@@ -22,7 +22,7 @@ void testPortReuseAfterDestroy(void)
 
 void testWebserverMultipleRestarts()
 {
-    CWebServer_Server *server = CWebServer_CreateServer(8081, 8455, 1024, NULL, NULL);
+    CWebServer_Server *server = CWebServer_CreateServer(8081, 8455, 1024, NULL, NULL, NULL);
 
     for (int i = 0; i < 3; i++)
     {
@@ -36,7 +36,7 @@ void testWebserverMultipleRestarts()
 
 void testStartStopWebserver()
 {
-    struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "cert.pem", "key.pem");
+    struct CWebServer_Server *server = CWebServer_CreateServer(8080, 8443, 1024, "cert.pem", "key.pem", NULL);
 
     CWebServer_StartServerAsync(server);
 
@@ -59,7 +59,7 @@ void testCreateMultipleWebservers()
 
     for (int i = 0; i < serverNum; i++)
     {
-        servers[i] = CWebServer_CreateServer(8001 + i, 8443 + i, 1024 + i, NULL, NULL);
+        servers[i] = CWebServer_CreateServer(8001 + i, 8443 + i, 1024 + i, NULL, NULL, NULL);
     }
 
     for (int i = 0; i < serverNum; i++)
@@ -81,7 +81,7 @@ void testCreateMultipleWebservers()
 
 void testCreateWebserver()
 {
-    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL);
+    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, NULL);
 
     ASSERT_EQUALS(server->HTTPPort, 8001, "The server's HTTP port was not set correctly.");
 
