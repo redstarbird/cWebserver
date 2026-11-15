@@ -69,7 +69,14 @@ if(PROJECT_IS_TOP_LEVEL)
             -fno-omit-frame-pointer
             -fno-sanitize-recover=undefined
             )
-            target_link_options(${TEST_NAME} PRIVATE -fsanitize=address,undefined)
+            target_link_options(${TEST_NAME} PRIVATE
+            -fsanitize=address,undefined
+            "-Wl,--wrap=malloc"
+            "-Wl,--wrap=socket"
+            "-Wl,--wrap=bind"
+            "-Wl,--wrap=listen"
+            "-Wl,--wrap=SSL_CTX_new"
+            )
         endif()
 
         add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
