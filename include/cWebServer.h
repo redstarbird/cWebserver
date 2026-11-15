@@ -9,12 +9,12 @@ typedef struct HTTPResponse CWebServer_Response;
 
 typedef enum
 {
-    WS_OK = 0,
-    WS_ERR_SOCKET = -1,
-    WS_ERR_TLS = -3,
-    WS_ERR_MEMORY = -4,
-    WS_ERR_INVALID_ARG = -5,
-    WS_ERR_THREAD = -6,
+    CWS_OK = 0,
+    CWS_ERR_SOCKET = -1,
+    CWS_ERR_TLS = -3,
+    CWS_ERR_MEMORY = -4,
+    CWS_ERR_INVALID_ARG = -5,
+    CWS_ERR_THREAD = -6,
 } cws_error_t;
 
 CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath);
