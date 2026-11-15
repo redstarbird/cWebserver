@@ -31,6 +31,15 @@
 // Array storing HTTP status codes and their corresponding messages
 extern const char *HTTP_Status_Codes[600];
 
+#define SetErrorOut(error_ptr, error_val) \
+    do                                    \
+    {                                     \
+        if ((ptr) != NULL)                \
+        {                                 \
+            *(ptr) = (value);             \
+        }                                 \
+    } while (0)
+
 struct CWebServer_Server
 {
     // Socket file descriptors
