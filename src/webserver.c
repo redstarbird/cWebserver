@@ -82,7 +82,7 @@ void setupCertificate(SSL_CTX *ssl, const char *certPath, const char *keyPath)
     }
 }
 
-CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath)
+CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath, cws_error_t *error)
 {
     cws_platform_init();
 
