@@ -17,7 +17,7 @@ typedef enum
     CWS_ERR_THREAD = -6,
 } cws_error_t;
 
-CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath);
+CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath, cws_error_t *error);
 void CWebServer_DestroyServer(CWebServer_Server *server);
 void CWebServer_StartServerAsync(CWebServer_Server *server);
 void CWebServer_StartServerWait(CWebServer_Server *server);
