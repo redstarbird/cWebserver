@@ -15,30 +15,31 @@ cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
     if (socketfd == CWS_INVALID_SOCKET)
     {
         printf("An error occurred when attempting to create socket, errno: %d\n", cws_GetSocketError());
-        exit(1);
+        return CWS_INVALID_SOCKET;
     }
 
     if (cws_socket_set_reuseaddr(socketfd, true) < 0)
     {
-        printf("An error occured when attemptingto set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
+        printf("Warning: An error occured when attempting to set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
     }
 
     // Bind the socket to the server address and check for any errors
-    if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
+    if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
     {
         printf("An error occurred when attempting to bind socket to server address, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
         cws_CloseSocket(socketfd);
-        exit(1);
+        return CWS_INVALID_SOCKET;
     }
 
     // Prepare the socket to listen and accept connections
-    if (listen(socketfd, maxQueued) == -1)
+    // Windows and POSIX both return 0 for success here
+    if (listen(socketfd, maxQueued) != 0)
     {
         printf("An error occurred when attempting to call listen on socket, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
         cws_CloseSocket(socketfd);
-        exit(1);
+        return CWS_INVALID_SOCKET;
     }
     return socketfd;
 }
