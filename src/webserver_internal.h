@@ -34,9 +34,9 @@ extern const char *HTTP_Status_Codes[600];
 #define SetErrorOut(error_ptr, error_val) \
     do                                    \
     {                                     \
-        if ((ptr) != NULL)                \
+        if ((error_ptr) != NULL)          \
         {                                 \
-            *(ptr) = (value);             \
+            *(error_ptr) = (error_val);   \
         }                                 \
     } while (0)
 
