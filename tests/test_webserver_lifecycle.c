@@ -106,11 +106,76 @@ void testCreateWebserver()
     CWebServer_DestroyServer(server);
 }
 
+void testCreateServerMallocFails(void)
+{
+    cws_error_t err;
+    mock_malloc_fail = true;
+    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
+    mock_malloc_fail = false;
+
+    ASSERT_TRUE(server == NULL, "Server was not NULL when malloc failed.");
+
+    ASSERT_EQUALS(CWS_ERR_MEMORY, err, "Error output was not set to memory error.");
+}
+
+void testCreateServerSocketFails(void)
+{
+    cws_error_t err;
+    mock_socket_fail = true;
+    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
+    mock_socket_fail = false;
+
+    ASSERT_TRUE(server == NULL, "Server was not NULL when socket creation failed.");
+
+    ASSERT_EQUALS(CWS_ERR_SOCKET, err, "Error output was not set to socket error.");
+}
+
+void testCreateServerSocketBindFails(void)
+{
+    cws_error_t err;
+    mock_bind_fail = true;
+    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
+    mock_bind_fail = false;
+
+    ASSERT_TRUE(server == NULL, "Server was not NULL when socket bind failed.");
+
+    ASSERT_EQUALS(CWS_ERR_SOCKET, err, "Error output was not set to socket error.");
+}
+
+void testCreateServerSocketListenFails(void)
+{
+    cws_error_t err;
+    mock_listen_fail = true;
+    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
+    mock_listen_fail = false;
+
+    ASSERT_TRUE(server == NULL, "Server was not NULL when socket listen failed.");
+
+    ASSERT_EQUALS(CWS_ERR_SOCKET, err, "Error output was not set to socket error.");
+}
+
+void testCreateServerSSLCTXnewFails(void)
+{
+    cws_error_t err;
+    mock_ssl_fail = true;
+    struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
+    mock_ssl_fail = false;
+
+    ASSERT_TRUE(server == NULL, "Server was not NULL when SSL context creation failed.");
+
+    ASSERT_EQUALS(CWS_ERR_TLS, err, "Error output was not set to TLS error.");
+}
+
 int main(void)
 {
     testCreateWebserver();
     testCreateMultipleWebservers();
     testStartStopWebserver();
     testCreateWebserverOnUsedPortReturnsNull();
+    testCreateServerMallocFails();
+    testCreateServerSocketFails();
+    testCreateServerSocketBindFails();
+    testCreateServerSocketListenFails();
+    testCreateServerSSLCTXnewFails();
     return 0;
 }
