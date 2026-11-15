@@ -87,9 +87,28 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     cws_platform_init();
 
     struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
+    if (server == NULL)
+    {
+        cws_platform_cleanup();
+        SetErrorOut(error, CWS_ERR_MEMORY);
+        return NULL;
+    }
 
     server->HTTP_Socket = createListenerSocket(HTTP_Port, maxQueued);
+    if (server->HTTP_Socket == CWS_INVALID_SOCKET)
+    {
+        CWebServer_DestroyServer(server);
+        SetErrorOut(error, CWS_ERR_SOCKET);
+        return NULL;
+    }
+
     server->HTTPS_Socket = createListenerSocket(HTTPS_Port, maxQueued);
+    if (server->HTTPS_Socket == CWS_INVALID_SOCKET)
+    {
+        CWebServer_DestroyServer(server);
+        SetErrorOut(error, CWS_ERR_SOCKET);
+        return NULL;
+    }
 
     server->HTTPPort = HTTP_Port;
     server->HTTPSPort = HTTPS_Port;
@@ -98,6 +117,12 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     server->rootPathLen = 0;
 
     server->SSL_ctx = SSL_CTX_new(TLS_server_method());
+    if (server->SSL_ctx == NULL)
+    {
+        CWebServer_DestroyServer(server);
+        SetErrorOut(error, CWS_ERR_TLS);
+        return NULL;
+    }
 
     setupCertificate(server->SSL_ctx, certPath, keyPath);
 
