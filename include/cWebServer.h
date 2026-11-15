@@ -15,7 +15,7 @@ typedef enum
     WS_ERR_MEMORY = -4,
     WS_ERR_INVALID_ARG = -5,
     WS_ERR_THREAD = -6,
-} ws_error_t;
+} cws_error_t;
 
 CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath);
 void CWebServer_DestroyServer(CWebServer_Server *server);
