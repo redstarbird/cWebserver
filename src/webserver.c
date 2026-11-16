@@ -21,6 +21,7 @@ cws_socket_t createListenerSocket(uint16_t port, uint32_t maxQueued)
     if (cws_socket_set_reuseaddr(socketfd, true) < 0)
     {
         printf("Warning: An error occured when attempting to set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
+        return CWS_INVALID_SOCKET;
     }
 
     // Bind the socket to the server address and check for any errors
