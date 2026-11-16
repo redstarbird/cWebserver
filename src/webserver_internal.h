@@ -26,6 +26,10 @@
 #include "./util/file_util.h"
 #include "./content_types.h"
 
+#ifdef CWS_TESTING
+#include "../tests/mocks.h"
+#endif
+
 #define PATH_MAX 4096
 
 // Array storing HTTP status codes and their corresponding messages
