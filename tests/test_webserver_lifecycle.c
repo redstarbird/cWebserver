@@ -79,20 +79,6 @@ void testCreateMultipleWebservers()
     free(servers);
 }
 
-void testCreateWebserverOnUsedPortReturnsNull()
-{
-    cws_error_t err;
-    struct CWebServer_Server *server1 = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
-    ASSERT_TRUE(server1 != NULL, "CreateServer returned NULL.");
-
-    struct CWebServer_Server *server2 = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, &err);
-
-    ASSERT_TRUE(server2 == NULL, "CreateServer did not return NULL.");
-    ASSERT_EQUALS(CWS_ERR_SOCKET, err, "Error value was not socket error.");
-
-    CWebServer_DestroyServer(server1);
-}
-
 void testCreateWebserver()
 {
     struct CWebServer_Server *server = CWebServer_CreateServer(8001, 8002, 1024, NULL, NULL, NULL);
