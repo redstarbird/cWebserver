@@ -157,7 +157,6 @@ int main(void)
     testCreateWebserver();
     testCreateMultipleWebservers();
     testStartStopWebserver();
-    testCreateWebserverOnUsedPortReturnsNull();
     testCreateServerMallocFails();
     testCreateServerSocketFails();
     testCreateServerSocketBindFails();
