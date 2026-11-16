@@ -26,10 +26,23 @@
 #include "./util/file_util.h"
 #include "./content_types.h"
 
+#ifdef CWS_TESTING
+#include "../tests/mocks.h"
+#endif
+
 #define PATH_MAX 4096
 
 // Array storing HTTP status codes and their corresponding messages
 extern const char *HTTP_Status_Codes[600];
+
+#define SetErrorOut(error_ptr, error_val) \
+    do                                    \
+    {                                     \
+        if ((error_ptr) != NULL)          \
+        {                                 \
+            *(error_ptr) = (error_val);   \
+        }                                 \
+    } while (0)
 
 struct CWebServer_Server
 {

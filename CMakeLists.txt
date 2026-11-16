@@ -50,6 +50,33 @@ if(PROJECT_IS_TOP_LEVEL)
         message(WARNING "OpenSSL executable not found. Tests will fail if cert.pem or key.pem are missing!")
     endif()
 
+    # Build testing version of the library including mock definitions
+
+    get_target_property(WEBSERVER_SOURCES webserver SOURCES)
+    add_library(webserver_testable STATIC ${WEBSERVER_SOURCES} tests/mocks.c)
+    # Add testing compile definition to inject mocked functions
+    target_compile_definitions(webserver_testable PUBLIC CWS_TESTING)
+
+    target_include_directories(webserver_testable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(webserver_testable PUBLIC OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
+
+    if(WIN32)
+        target_link_libraries(webserver_testable PUBLIC ws2_32 crypt32)
+        target_compile_definitions(webserver_testable PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
+    endif()
+
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+            target_compile_options(webserver_testable PUBLIC
+            -g 
+            -fsanitize=address,undefined
+            -fno-omit-frame-pointer
+            -fno-sanitize-recover=undefined
+            )
+            target_link_options(webserver_testable PUBLIC -fsanitize=address,undefined)
+        endif()
+
+    # Create executable for every test source file
+
     file(GLOB TEST_SOURCES "tests/test_*.c")
 
     foreach(TEST_FILE ${TEST_SOURCES})
@@ -60,17 +87,7 @@ if(PROJECT_IS_TOP_LEVEL)
         add_executable(${TEST_NAME} ${TEST_FILE})
 
         # Link the webserver library to the test executable
-        target_link_libraries(${TEST_NAME} PRIVATE webserver CURL::libcurl)
-
-        if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-            target_compile_options(${TEST_NAME} PRIVATE
-            -g 
-            -fsanitize=address,undefined
-            -fno-omit-frame-pointer
-            -fno-sanitize-recover=undefined
-            )
-            target_link_options(${TEST_NAME} PRIVATE -fsanitize=address,undefined)
-        endif()
+        target_link_libraries(${TEST_NAME} PRIVATE webserver_testable CURL::libcurl)
 
         add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 

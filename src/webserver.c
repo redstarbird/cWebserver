@@ -1,7 +1,7 @@
 #include "./webserver_internal.h"
 
 // Function to create a new listener socket on a given port
-cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
+cws_socket_t createListenerSocket(uint16_t port, uint32_t maxQueued)
 {
 
     // Setup server address structure
@@ -15,30 +15,32 @@ cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
     if (socketfd == CWS_INVALID_SOCKET)
     {
         printf("An error occurred when attempting to create socket, errno: %d\n", cws_GetSocketError());
-        exit(1);
+        return CWS_INVALID_SOCKET;
     }
 
     if (cws_socket_set_reuseaddr(socketfd, true) < 0)
     {
-        printf("An error occured when attemptingto set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
+        printf("Warning: An error occured when attempting to set SO_REUSEADDR on socket, errno %d\n", cws_GetSocketError());
+        return CWS_INVALID_SOCKET;
     }
 
     // Bind the socket to the server address and check for any errors
-    if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
+    if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
     {
         printf("An error occurred when attempting to bind socket to server address, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
         cws_CloseSocket(socketfd);
-        exit(1);
+        return CWS_INVALID_SOCKET;
     }
 
     // Prepare the socket to listen and accept connections
-    if (listen(socketfd, maxQueued) == -1)
+    // Windows and POSIX both return 0 for success here
+    if (listen(socketfd, maxQueued) != 0)
     {
         printf("An error occurred when attempting to call listen on socket, errno: %d\n", cws_GetSocketError());
         // Close the socket on error
         cws_CloseSocket(socketfd);
-        exit(1);
+        return CWS_INVALID_SOCKET;
     }
     return socketfd;
 }
@@ -81,14 +83,39 @@ void setupCertificate(SSL_CTX *ssl, const char *certPath, const char *keyPath)
     }
 }
 
-CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath)
+CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Port, uint32_t maxQueued, const char *certPath, const char *keyPath, cws_error_t *error)
 {
     cws_platform_init();
 
     struct CWebServer_Server *server = malloc(sizeof(struct CWebServer_Server));
+    if (server == NULL)
+    {
+        cws_platform_cleanup();
+        SetErrorOut(error, CWS_ERR_MEMORY);
+        return NULL;
+    }
+
+    // Set empty states
+    server->HTTP_Socket = CWS_INVALID_SOCKET;
+    server->HTTPS_Socket = CWS_INVALID_SOCKET;
+    server->SSL_ctx = NULL;
+    server->running = false;
 
     server->HTTP_Socket = createListenerSocket(HTTP_Port, maxQueued);
+    if (server->HTTP_Socket == CWS_INVALID_SOCKET)
+    {
+        CWebServer_DestroyServer(server);
+        SetErrorOut(error, CWS_ERR_SOCKET);
+        return NULL;
+    }
+
     server->HTTPS_Socket = createListenerSocket(HTTPS_Port, maxQueued);
+    if (server->HTTPS_Socket == CWS_INVALID_SOCKET)
+    {
+        CWebServer_DestroyServer(server);
+        SetErrorOut(error, CWS_ERR_SOCKET);
+        return NULL;
+    }
 
     server->HTTPPort = HTTP_Port;
     server->HTTPSPort = HTTPS_Port;
@@ -97,12 +124,16 @@ CWebServer_Server *CWebServer_CreateServer(uint16_t HTTP_Port, uint16_t HTTPS_Po
     server->rootPathLen = 0;
 
     server->SSL_ctx = SSL_CTX_new(TLS_server_method());
+    if (server->SSL_ctx == NULL)
+    {
+        CWebServer_DestroyServer(server);
+        SetErrorOut(error, CWS_ERR_TLS);
+        return NULL;
+    }
 
     setupCertificate(server->SSL_ctx, certPath, keyPath);
 
     server->maxQueued = maxQueued;
-
-    server->running = false;
 
     return server;
 }

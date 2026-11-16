@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+#define CWS_NO_MOCK_MACROS
+#include "mocks.h"
 
 /** @brief Assert that a condition is true */
 #define ASSERT_TRUE(condition, message)                                         \
