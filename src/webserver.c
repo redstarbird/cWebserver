@@ -1,7 +1,7 @@
 #include "./webserver_internal.h"
 
 // Function to create a new listener socket on a given port
-cws_socket_t createListenerSocket(int port, uint32_t maxQueued)
+cws_socket_t createListenerSocket(uint16_t port, uint32_t maxQueued)
 {
 
     // Setup server address structure
